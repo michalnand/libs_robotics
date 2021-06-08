@@ -37,3 +37,11 @@ while True:
     ... = partcile_filter.position_x
     ... = partcile_filter.position_y
 ```
+
+
+## points cloud matching
+
+find transformation to match two point clouds
+(scale, offset and rotation)
+
+<img src="doc/points_matching.gif" width="800">
