@@ -12,9 +12,9 @@ def render(map, robot_x, robot_y, estimated_x, estimated_y, particles_x, particl
     particles_count = len(particles_x)
 
     image = numpy.zeros((3, height, width))
-    image[0] = 0.3*map.copy()[:,:,0]
-    image[1] = 0.3*map.copy()[:,:,0]
-    image[2] = 0.3*map.copy()[:,:,0]
+    image[0] = 0.6*map.copy()[:,:,0]
+    image[1] = 0.6*map.copy()[:,:,0]
+    image[2] = 0.6*map.copy()[:,:,0]
 
 
     for p in range(particles_count):
@@ -22,7 +22,7 @@ def render(map, robot_x, robot_y, estimated_x, estimated_y, particles_x, particl
         px = int(particles_x[p]*width)
 
         image[0][py][px] = 0.0
-        image[1][py][px] = 0.2
+        image[1][py][px] = 0.8
         image[2][py][px] = 0.0
 
     image[0][robot_y][robot_x] = 0.0

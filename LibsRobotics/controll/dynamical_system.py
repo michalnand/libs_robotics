@@ -8,7 +8,7 @@ class DynamicalSystem(torch.nn.Module):
         self.new_system(batch_size, mean_a, sigma_a, mean_y, sigma_y) 
        
     def new_system(self, batch_size, mean_a, sigma_a, mean_y, sigma_y):
-        eps = 0.0000000001
+        eps = 0.0000001
 
         a_value = (sigma_a + eps)*torch.randn((batch_size, mean_a.shape[0], mean_a.shape[1])) + mean_a
         self.a  = torch.nn.parameter.Parameter(a_value, requires_grad=True)
