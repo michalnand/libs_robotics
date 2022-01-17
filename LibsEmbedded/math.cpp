@@ -1,29 +1,35 @@
 #include "math.h"
+#include <stdint.h>
 
-#define PI ((float)3.141592654)
 
 float sqrt(float x)
 {
-    if (x < 1) 
+    if (x <= 0)
     {
-        return 1.0/sqrt(x);  // MSalter's general solution
+        return 0;
     }
 
     float xhi = x;
     float xlo = 0;
     float guess = x/2;
 
-    while (guess * guess != x)
+    uint8_t steps = 0;
+
+    while ( (abs(guess*guess - x) > 0.000000001) && (steps < 32) )
     {
         if (guess * guess > x)
+        {
             xhi = guess;
+        }
         else
+        {
             xlo = guess;
+        }
 
         float new_guess = (xhi + xlo) / 2;
-        if (new_guess == guess)
-            break; // not getting closer
         guess = new_guess;
+
+        steps++;
     }
     
     return guess;
@@ -50,11 +56,13 @@ float tan(float x)
 
 float asin(float x)
 {
+    x = clamp(x, -1.0f, 1.0f);
     return atan2(x, sqrt(1-x*x));
 }
 
 float acos(float x)
 {
+    x = clamp(x, -1.0f, 1.0f);
     return atan2(sqrt(1-x*x), x);
 }
 

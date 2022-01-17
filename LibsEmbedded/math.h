@@ -3,6 +3,9 @@
 
 #include "math_t.h"
 
+#define PI ((float)3.141592654)
+
+
 template<class DType>
 struct Vect2d
 {   
@@ -22,13 +25,13 @@ struct Vect4d
 };
 
 
-float sin(x);
-float cos(x);
-float tan(x);
+float sin(float x);
+float cos(float x);
+float tan(float x);
 
-float asin(x);
-float acos(x);
-float atan(x);
+float asin(float x);
+float acos(float x);
+float atan(float x);
 
 float atan2(float x, float y);
 

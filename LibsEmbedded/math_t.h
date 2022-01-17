@@ -40,4 +40,21 @@ DType max(DType va, DType vb)
 }
 
 
+template<class DType>
+DType clamp(DType v, DType min_v, DType max_v)
+{
+    if (v < min_v)
+    {
+        v = min_v;
+    }
+
+    if (v > max_v)
+    {
+        v = max_v;
+    }
+
+    return v;
+}
+
+
 #endif
