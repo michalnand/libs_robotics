@@ -9,6 +9,10 @@ __pycache__/
 # C extensions
 *.so
 *.o
+*.elf
+*.hex
+*.bin
+*.asm
 
 # Distribution / packaging
 eggs/

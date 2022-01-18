@@ -39,6 +39,19 @@ DType max(DType va, DType vb)
     }
 }
 
+template<class DType>
+DType sgn(DType v)
+{
+    if (v > 0)
+    {
+        return 1.0;
+    }
+    else
+    {
+        return -1.0;
+    }
+}
+
 
 template<class DType>
 DType clamp(DType v, DType min_v, DType max_v)
@@ -55,6 +68,20 @@ DType clamp(DType v, DType min_v, DType max_v)
 
     return v;
 }
+
+template<class DType>
+DType shrink(DType v, DType s_low, DType s_high)
+{
+    if (v < s_low || v > s_high)
+    {
+        return v;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 
 
 #endif
