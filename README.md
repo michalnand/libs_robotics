@@ -1,6 +1,20 @@
 # libs_robotics
 libs for robotics - localisation, mapping ...
 
+## IMU
+
+- complementary filter for sensor fusion
+- low level driver [mpu6050](LibsDevices/mpu6050.h)
+- IMU driver for sensor fussion [imu](LibsEmbedded/imu.h)
+- firmware code [fw](tests/imu_avr_firmware)
+- GUI PC app [app](tests/imu_visualisation)
+
+![imu architecture](doc/imu/architecture.png)
+
+![imu fusion](doc/imu/fusion.png)
+
+![imu fusion](doc/imu/animation.gif)
+
 
 ## particle filter
 
