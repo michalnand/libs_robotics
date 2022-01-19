@@ -24,7 +24,7 @@ int main()
     terminal << "mpu6050 init done with " << init_res << "\n";
 
     IMU imu;
-    imu.init(0.2);
+    imu.init(0.1);
  
     uint64_t time_now  = 0;
     uint64_t time_prev = 0;
@@ -65,7 +65,7 @@ int main()
       {      
         terminal << "#JSON\n";
         terminal << "{\n";
-        terminal << "\"imu_sensor\" : " << "[" << roll << ", " << pitch << ", " << yaw << "]\n";
+        terminal << "\"imu_sensor\" : " << "[" << roll << ", " << pitch << ", " << yaw << ", " << mps << "]\n";
         terminal << "}";
         terminal << "#END\n\n\n";
       }

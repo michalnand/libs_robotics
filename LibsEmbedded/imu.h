@@ -18,6 +18,8 @@ class IMU
         //returns               : x, y, z;      [rad]
         Vect3d<float> step(float ax, float ay, float az, float gx, float gy, float gz, float dt = 0.01);
 
+        Vect3d<float> convert_euler_angles(float theta, float phi, float p, float q, float r);
+
     public:
         Vect3d<float> result;
 

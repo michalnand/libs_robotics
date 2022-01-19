@@ -95,15 +95,26 @@ float ftan(float x)
     //return x * (((-0.000221184 * y + 0.0024971104) * y - 0.02301937096) * y + 0.3182994604 + 1.2732402998 / y);
 }
 
-float fcotan(float x)
-{
-    float tmp = fsin(x);
-    if (tmp == 0)
-    {
-        tmp = EPSILON;
-    }
 
-    return fcos(x)/tmp;
+float fsec(float x)
+{
+    float tmp = fcos(x);
+
+    if (tmp < EPSILON && tmp > -EPSILON)
+    {
+        if (tmp > 0)
+        {
+            return 1.0/EPSILON;
+        }
+        else
+        {
+            return -1.0/EPSILON;
+        }
+    }
+    else
+    {
+        return 1.0/tmp;
+    }
 }
 
 

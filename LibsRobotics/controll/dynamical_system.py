@@ -1,65 +1,57 @@
 import torch
 
 
+'''
+create batch of linear dynamical system :
+
+dx = Ax + Bu 
+y  = Cu
+
+
+with mean given by matrices     mat_a, mat_b, mat_c
+and sweeped by noise given      sigma_a, sigma_b, sigma_c
+
+this noise simulates system identification uncertaininty
+
+
+
+A - state matrix, [mat_a, sigma_a]
+B - input matrix, [mat_b, sigma_b]
+C - output matrix, [mat_c, sigma_c]
+
+d_state[dx], output[y] = forward(state[x], controll[u])
+'''
 class DynamicalSystem(torch.nn.Module):
-    def __init__(self, batch_size, mean_a, sigma_a, mean_y, sigma_y):
+    def __init__(self, batch_size, mat_a, sigma_a, mat_b, sigma_b, mat_c, sigma_c):
         super().__init__()
 
-        self.new_system(batch_size, mean_a, sigma_a, mean_y, sigma_y) 
-       
-    def new_system(self, batch_size, mean_a, sigma_a, mean_y, sigma_y):
-        eps = 0.0000001
+        self.new_system(batch_size, mat_a, sigma_a, mat_b, sigma_b, mat_c, sigma_c)
 
-        a_value = (sigma_a + eps)*torch.randn((batch_size, mean_a.shape[0], mean_a.shape[1])) + mean_a
-        self.a  = torch.nn.parameter.Parameter(a_value, requires_grad=True)
-
-        y_value = (sigma_y + eps)*torch.randn((batch_size, mean_y.shape[0], mean_y.shape[1])) + mean_y
-        self.y  = torch.nn.parameter.Parameter(y_value, requires_grad=True)
-
-        self.a.to(mean_a.device) 
-        self.y.to(mean_y.device)
+    def new_system(self, batch_size, mat_a, sigma_a, mat_b, sigma_b, mat_c, sigma_c): 
         
+        a_value = mat_a + sigma_a*torch.randn((batch_size, ) + sigma_a.shape)
+        b_value = mat_b + sigma_b*torch.randn((batch_size, ) + sigma_b.shape)
+        c_value = mat_c + sigma_c*torch.randn((batch_size, ) + sigma_c.shape)
 
-    def forward(self, state, input, dt):
-        state_      = state.unsqueeze(1)
-        input_      = input.unsqueeze(1)
-        x           = torch.cat([state_, input_], dim = 2)
-        
-        ds          = torch.bmm(x, self.a)*dt
-        state_new   = state + ds.squeeze(1)
-        y           = torch.bmm(state_new.unsqueeze(1), self.y).squeeze(1)
+        self.mat_a  = torch.nn.parameter.Parameter(a_value, requires_grad=True)
+        self.mat_b  = torch.nn.parameter.Parameter(b_value, requires_grad=True)
+        self.mat_c  = torch.nn.parameter.Parameter(c_value, requires_grad=True)
 
-        return state_new, y
-    
+        self.mat_a.to(mat_a.device)
+        self.mat_b.to(mat_b.device)
+        self.mat_c.to(mat_c.device)
 
-    def print_matrices(self):
-        print(self.a)
-        #print(self.y)
-        print("\n")
+    def forward(self, x, u):
+        x_      = x.unsqueeze(2)
+        u_      = u.unsqueeze(2)
 
-if __name__ == "__main__":
+        dx = torch.bmm(self.mat_a, x_) + torch.bmm(self.mat_b, u_)
 
-    inputs_count    = 5
-    outputs_count   = 2 
-    system_order    = 3
+        dx = dx.squeeze(2)
 
-    batch_size      = 64
+        y  = torch.bmm(self.mat_c, x_)
+        y  = y.squeeze(2)
 
-    mean_a  = torch.randn((system_order + inputs_count, system_order))
-    sigma_a = 0.01*torch.ones((system_order + inputs_count, system_order))
-
-    mean_y  = torch.randn((system_order, outputs_count))
-    sigma_y = 0.01*torch.ones((system_order, outputs_count))
-
-    model = DynamicalSystem(batch_size, mean_a, sigma_a, mean_y, sigma_y)
-    model.print_matrices()
-
-    state = torch.randn((batch_size, system_order))
-    input = torch.randn((batch_size, inputs_count))
-
-    state_new, y = model(state, input, 0.01)
-    
-    print(state.shape, input.shape, state_new.shape, y.shape)
+        return dx, y
 
 
-    

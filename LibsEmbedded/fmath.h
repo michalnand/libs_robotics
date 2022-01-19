@@ -33,7 +33,7 @@ float fsqrt(float x);
 float fsin(float x);
 float fcos(float x);
 float ftan(float x);
-float fcotan(float x);
+float fsec(float x);
 
 float fasin(float x);
 float facos(float x);
