@@ -16,6 +16,30 @@ libs for robotics - localisation, mapping ...
 ![imu fusion](doc/imu/animation.gif)
 
 
+## robust controll in pytorch
+
+- pytorch is used for controller optimisation
+- linear dynamical system (described as state space)
+- controller can be linear or non-liear (GRU, LSTM ...)
+- whole graph is differentiable, so torch can optimise whole problem
+- Runge-Kutta is used for solving ODE's
+- loss specifies controller behaviour
+
+### computational graph overview (loss ommitted)
+![imu architecture](doc/robust_controll/overview.png)
+
+
+### linear controller is just 3 matrix multiplications
+[code](LibsRobotics/controll/controller.py)
+![imu architecture](doc/robust_controll/linearcontrollerdesc.png)
+![imu architecture](doc/robust_controll/linearcontroller.png)
+
+### servo controll with 20% parameters uncertaininty, using non-linear 64 units GRU
+![imu architecture](doc/robust_controll/servo_controll_gru.gif)
+
+
+
+
 ## particle filter
 
 estimate position for local measurement, known map and relative position change

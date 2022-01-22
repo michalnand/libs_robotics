@@ -7,7 +7,7 @@ class MotorModel(torch.nn.Module):
 
         self.batch_size     = batch_size
         self.system_order   = system_order
-        inputs_count        = 1
+        inputs_count        = 1 
 
         j                   = 0.5*wheel_mass*(wheel_radius**2)
 
