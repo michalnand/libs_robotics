@@ -1,6 +1,66 @@
 import torch
 
 '''
+apply controll law : u = x[required_state, plant_output]*controll_mat
+
+required_dim - required value dimension
+output_dim   - plant outputs count (plant matrix C rows)
+input_dim    - plant inputs count  (plant matrix B rows)
+'''
+class LinearQuadraticController(torch.nn.Module):
+    def __init__(self, required_dim, output_dim, input_dim):
+        super().__init__()
+
+        controll_mat        = torch.zeros((required_dim + output_dim, input_dim)).float()
+        self.controll_mat   = torch.nn.parameter.Parameter(controll_mat, requires_grad=True)
+
+    def to_string(self):
+        result = ""
+        result+= "controller_inputs = " + str(self.controll_mat.shape[0]) + "\n"
+        result+= "controller_output = " + str(self.controll_mat.shape[1]) + "\n"
+        result+= "\n"
+
+        result+= "controll_mat = \n"
+        controll_mat = self.controll_mat.detach().to("cpu").numpy()
+        for j in range(self.controll_mat.shape[0]):
+            for i in range(self.controll_mat.shape[1]):
+                result+= str(controll_mat[j][i]) + " "
+            result+= "\n"
+        result+= "\n"
+
+        return result
+
+    def forward(self, required_state, plant_state):
+        x   = torch.cat([required_state, plant_state], dim=1)
+        y   = torch.mm(x, self.controll_mat)
+        return y
+
+
+class NonLinearQuadraticController(torch.nn.Module):
+    def __init__(self, required_dim, input_dim, hidden_dim = 64):
+        super().__init__()
+
+        self.lin0   = torch.nn.Linear(required_dim + input_dim, hidden_dim)
+        self.act    = torch.nn.Tanh()
+        self.lin1   = torch.nn.Linear(hidden_dim, required_dim)  
+
+        torch.nn.init.orthogonal_(self.lin0.weight, 0.1)  
+        torch.nn.init.zeros_(self.lin0.bias)  
+
+        torch.nn.init.orthogonal_(self.lin1.weight, 0.1)  
+        torch.nn.init.zeros_(self.lin1.bias)  
+
+    def forward(self, required_state, plant_state):
+        x   = torch.cat([required_state, plant_state], dim=1)
+        
+        y   = self.lin0(x)
+        y   = self.act(y)
+        y   = self.lin1(y)
+
+        return y
+
+
+'''
 inputs_count    = measured variables from controlled ssytem
 outputs_count   = controller outputs count
 internal_size   = internal state size (e.g. 2..3x inputs_count)

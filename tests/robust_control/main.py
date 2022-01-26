@@ -109,15 +109,17 @@ j       = wm*(wr**2)    #inertia momentum
 a   = -((k**2)/r + friction)*(1.0/j)
 b   = k/(r*j)
 
+param_var = 0.02
+
 mat_a   = torch.FloatTensor([[a, 0.0],      [1.0, 0.0]])
-sigma_a = torch.FloatTensor([[0.2, 0.0],    [0.0, 0.0]]) 
+sigma_a = torch.FloatTensor([[param_var, 0.0],    [0.0, 0.0]]) 
 
 #input matrix
 mat_b   = torch.FloatTensor([[b],    [0.0]])
-sigma_b = torch.FloatTensor([[0.2],  [0.0]])
+sigma_b = torch.FloatTensor([[param_var],  [0.0]])
 
 #output matrix
-mat_c   = torch.FloatTensor([[0.0, 0.0], [0.0, 1.0]])
+mat_c   = torch.FloatTensor([[1.0, 0.0], [0.0, 1.0]])
 sigma_c = torch.FloatTensor([[0.0, 0.0], [0.0, 0.0]])
 
 #mat_c   = torch.FloatTensor([[0.0, 1.0]]) 
