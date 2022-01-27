@@ -14,11 +14,13 @@ def closed_loop_response(plant, controller, required_trajectory, disturbance = N
     plant_y_trajectory  = torch.zeros((steps, batch_size, plant_outputs_count)).float()
 
     controller_u_trajectory = torch.zeros((steps, batch_size, plant.mat_b.shape[1])).float()
-
+ 
     plant_x             = torch.zeros((batch_size, plant.mat_a.shape[1])).float()
 
     if hasattr(controller, "hidden_dim"):
-        controller_x = torch.zeros((batch_size, controller.hidden_dim))
+        controller_x = torch.zeros((batch_size, controller.hidden_dim)).float()
+    else:
+        controller_x = None
 
     for n in range(steps):
         required_state  = required_trajectory[n]
@@ -31,7 +33,6 @@ def closed_loop_response(plant, controller, required_trajectory, disturbance = N
         if noise is not None:
             plant_y = plant_y + noise[n]
         
-
         #obtain controller output
         if hasattr(controller, "hidden_dim"):
             controller_u, controller_x    = controller(required_state, plant_y, controller_x)

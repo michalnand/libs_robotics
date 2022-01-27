@@ -23,9 +23,23 @@ libs for robotics - localisation, mapping ...
 - Runge-Kutta is used for solving ODE's
 - loss specifies controller behaviour
 
-### block diagram of controll loop
+
+## LQR vs Robust LQR
+
+- robust LQR used internal "hidden" state
+- it's more tolerant to controlled plant uncertainity
+
+### basic LQR 
 
 ![controller](doc/robust_controll/lqr.png)
+![controller](doc/robust_controll/lqrdetail.png)
+
+### robust LQR
+**linear quadratic regulator with hidden state - robust control**
+
+![controller](doc/robust_controll/lqrhiddenstate.png)
+![controller](doc/robust_controll/lqrhiddenstatedetail.png)
+
 
 
 ### controlling servo
@@ -34,14 +48,13 @@ libs for robotics - localisation, mapping ...
 - angular velocity  and wheel position 
 - input is voltage into motor
 
+
 ### system dynamics
 ![servo_dynamics](doc/robust_controll/eqn_servo.gif)
  
-### controller
+### LQR structure is trivial 
 
 ![controller](doc/robust_controll/eqn_servo_controller.gif)
-
-
 
 
 
@@ -63,7 +76,7 @@ x_1
 
 + 
 
-\begin{pmatrix}
+\begin{pmatrix} 
 \beta \\
 0 
 \end{pmatrix} 
@@ -105,7 +118,26 @@ k_0 && k_1 && k_2 && k_3
 \end{pmatrix} 
 $$
 
-![controller](doc/robust_controll/servo_control.gif)
+
+## results
+ 
+- robust controller output have much less variance when parameters change
+- setling time is also faster
+
+### basic LQR
+![controller](doc/robust_controll/servo_control_lqr.png)
+
+### robust LQR
+![controller](doc/robust_controll/servo_control_lqrh.png) 
+ 
+### basic LQR
+![controller](doc/robust_controll/servo_control_lqr.gif)
+
+### robust LQR
+![controller](doc/robust_controll/servo_control_lqrh.gif)
+
+
+
 
 ## robust controll in pytorch
 

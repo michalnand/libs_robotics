@@ -3,17 +3,18 @@ import torch
 '''
 apply controll law : u = x[required_state, plant_output]*controll_mat
 
-required_dim - required value dimension
-output_dim   - plant outputs count (plant matrix C rows)
-input_dim    - plant inputs count  (plant matrix B rows)
+required_dim        - required value dimension (controller input)
+plant_output_dim    - plant outputs count (plant matrix C rows) (controller input)
+plant_input_dim     - plant inputs count  (plant matrix B rows) (controller output)
 '''
 class LinearQuadraticController(torch.nn.Module):
-    def __init__(self, required_dim, output_dim, input_dim):
+    def __init__(self, required_dim, plant_output_dim, plant_input_dim):
         super().__init__()
 
-        controll_mat        = torch.zeros((required_dim + output_dim, input_dim)).float()
+        controll_mat        = 0.001*torch.randn((required_dim + plant_output_dim, plant_input_dim)).float()
         self.controll_mat   = torch.nn.parameter.Parameter(controll_mat, requires_grad=True)
 
+      
     def to_string(self):
         result = ""
         result+= "controller_inputs = " + str(self.controll_mat.shape[0]) + "\n"
@@ -36,29 +37,65 @@ class LinearQuadraticController(torch.nn.Module):
         return y
 
 
-class NonLinearQuadraticController(torch.nn.Module):
-    def __init__(self, required_dim, input_dim, hidden_dim = 64):
+
+
+'''
+apply controll law : 
+h_new = [required_state, plant_output, h]*H
+u     = h*C
+
+required_dim        - required value dimension (controller input)
+plant_output_dim    - plant outputs count (plant matrix C rows) (controller input)
+plant_input_dim     - plant inputs count  (plant matrix B rows) (controller output)
+'''
+
+
+
+class LinearQuadraticControllerHidden(torch.nn.Module):
+    def __init__(self, required_dim, plant_output_dim, plant_input_dim, hidden_dim = 4):
         super().__init__()
 
-        self.lin0   = torch.nn.Linear(required_dim + input_dim, hidden_dim)
-        self.act    = torch.nn.Tanh()
-        self.lin1   = torch.nn.Linear(hidden_dim, required_dim)  
+        self.hidden_dim     = hidden_dim
 
-        torch.nn.init.orthogonal_(self.lin0.weight, 0.1)  
-        torch.nn.init.zeros_(self.lin0.bias)  
+        self.plant_input_dim = plant_input_dim
 
-        torch.nn.init.orthogonal_(self.lin1.weight, 0.1)  
-        torch.nn.init.zeros_(self.lin1.bias)  
+        controll_mat        = 0.001*torch.randn((required_dim + plant_output_dim + hidden_dim, hidden_dim + plant_input_dim)).float()
+        self.controll_mat   = torch.nn.parameter.Parameter(controll_mat, requires_grad=True)
 
-    def forward(self, required_state, plant_state):
-        x   = torch.cat([required_state, plant_state], dim=1)
+  
+    def forward(self, required_state, plant_state, hidden_state):
+        x   = torch.cat([required_state, plant_state, hidden_state], dim=1)
+
+        tmp  = torch.mm(x, self.controll_mat)
+
+        hidden_new, y = torch.split(tmp, [self.hidden_dim,  self.plant_input_dim], dim=1)
+
+        return y, hidden_new
+
+
+
+'''
+class LinearQuadraticControllerHidden(torch.nn.Module):
+    def __init__(self, required_dim, plant_output_dim, plant_input_dim, hidden_dim = 4):
+        super().__init__()
+
+        self.hidden_dim     = hidden_dim
+
+        h_mat        = 0.01*torch.randn((required_dim + plant_output_dim + hidden_dim, hidden_dim)).float()
+        g_mat        = 0.01*torch.randn((hidden_dim, plant_input_dim)).float()
+
+        self.h_mat   = torch.nn.parameter.Parameter(h_mat, requires_grad=True)
+        self.g_mat   = torch.nn.parameter.Parameter(g_mat, requires_grad=True)
+
+  
+    def forward(self, required_state, plant_state, hidden_state):
+        x   = torch.cat([required_state, plant_state, hidden_state], dim=1)
+
+        hidden_new  = torch.mm(x, self.h_mat)
+        y           = torch.mm(hidden_new, self.g_mat)
         
-        y   = self.lin0(x)
-        y   = self.act(y)
-        y   = self.lin1(y)
-
-        return y
-
+        return y, hidden_new
+'''
 
 '''
 inputs_count    = measured variables from controlled ssytem
@@ -153,38 +190,42 @@ class LinearController(torch.nn.Module):
 
 
 '''
-inputs_count    = measured variables from controlled ssytem
-outputs_count   = controller outputs count
-internal_size   = internal state size (e.g. 2..3x inputs_count)
+apply controll law : u = x[required_state, plant_output]*controll_mat
+
+required_dim        - required value dimension
+plant_output_dim    - plant outputs count (plant matrix C rows), controller inputs count
+plant_input_dim     - plant inputs count  (plant matrix B rows), controller outputs count
 
 uses GRU for non linear modeeling and linear layer for output
 '''
 class NonLinearController(torch.nn.Module):
-    def __init__(self, inputs_count, outputs_count, internal_size = 64, device = "cpu"):
+    def __init__(self, required_dim, plant_output_dim, plant_input_dim, hidden_dim = 16, device = "cpu"):
         super().__init__()
 
-        self.inputs_count   = inputs_count
-        self.outputs_count  = outputs_count
-        self.internal_size  = internal_size
+        self.hidden_dim = hidden_dim
 
-        self.gru    = torch.nn.GRU(self.inputs_count, self.internal_size, batch_first = True)
-        self.lin    = torch.nn.Linear(self.internal_size, self.outputs_count)
+        inputs_count = required_dim + plant_output_dim
+
+        self.gru    = torch.nn.GRU(inputs_count, self.hidden_dim, batch_first = True)
+        self.lin    = torch.nn.Linear(self.hidden_dim, plant_input_dim)
 
         self.gru.to(device)
         self.lin.to(device)
 
    
-    def forward(self, x, u):
-        x  = x.unsqueeze(0)
-        u  = u.unsqueeze(1)
+    def forward(self, required_state, plant_state, hidden_state):
 
-        _, hn = self.gru(u, x)
+        x  = torch.cat([required_state, plant_state], dim=1).unsqueeze(1)
+
+        #rnn step
+        _, hidden_new = self.gru(x, hidden_state.unsqueeze(0))
 
         #take final hidden state
-        hn = hn.squeeze(0)
+        hidden_new = hidden_new.squeeze(0)
 
-        y = self.lin(hn)
-        return hn, y
+        y = self.lin(hidden_new)
+
+        return y, hidden_new
 
 
 if __name__ == "__main__":
