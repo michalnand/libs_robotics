@@ -43,7 +43,7 @@ plant = LibsControll.plant.Servo(batch_size, v_nom, friction, w_nom, torque, j, 
 plant_inputs    = plant.mat_b.shape[2]
 plant_outputs   = plant.mat_c.shape[2]
 required_dim    = plant.mat_c.shape[2]
-
+ 
 amplitude_max   = 3.141592654
 
 required_generator      = LibsControll.SignalUnitStep(steps_count, required_dim, period = 5, randomise=True, amplitudes = [0.0, amplitude_max])
