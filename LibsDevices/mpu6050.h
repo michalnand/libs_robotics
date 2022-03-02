@@ -20,7 +20,7 @@ class MPU6050
     public:
         int16_t ax, ay, az;
         int16_t gx, gy, gz;
-        int32_t gx_offset, gy_offset, gz_offset; 
+        int16_t gx_offset, gy_offset, gz_offset; 
 
     private:
         I2C_Interface *i2c;

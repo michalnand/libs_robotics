@@ -8,7 +8,10 @@ extern "C" {
 extern uint32_t _estack[];
 extern uint32_t _sdata[], _edata[];
 extern uint32_t _etext[];                // End of code/flash
+extern void (*__init_array_start)();     //constructors
+extern void (*__init_array_end)();
 
+extern int main(void);
 
 // Default interrupt handler
 void __attribute__((interrupt("IRQ"))) Default_Handler()
@@ -121,26 +124,25 @@ void (* const InterruptVector[])() __attribute__ ((section(".isr_vector"), align
     BootRAM
 };
 
-
-extern int main(void);
-
-extern void (*__init_array_start)();
-extern void (*__init_array_end)();
+#include "device.h"
 
 void Reset_Handler(void)
 {
     // copy values to initialize data segment
-    uint32_t *fr = _etext;
-    uint32_t *to = _sdata;
-    unsigned int len = _edata - _sdata;
-    while(len--)
-      *to++ = *fr++;
+    uint32_t *fr        = _etext;
+    uint32_t *to        = _sdata;
+    unsigned int len    = _edata - _sdata;
 
+    while(len--) 
+    {
+        *to++ = *fr++;
+    }
+
+        
     //call global constructors
     void (**p)() = &__init_array_start;
-
     for (int i = 0; i < (&__init_array_end - &__init_array_start); i++)
-    {
+    { 
         p[i]();
     }
 

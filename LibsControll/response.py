@@ -1,7 +1,7 @@
 import torch
 from .ode_solver import *
 
-def closed_loop_response(plant, controller, required_trajectory, disturbance = None, noise = None, dt = 1.0/200.0):
+def closed_loop_response(plant, controller, required_trajectory, disturbance = None, noise = None, min_value = -10**10, max_value = 10**10, dt = 1.0/200.0):
 
     steps               = required_trajectory.shape[0]
     batch_size          = required_trajectory.shape[1]
@@ -39,11 +39,14 @@ def closed_loop_response(plant, controller, required_trajectory, disturbance = N
         else:
             controller_u    = controller(required_state, plant_y)
 
+        controller_u = torch.clip(controller_u, min_value, max_value)
+
+
         #obtain plant output
         plant_x, plant_y = ode_solver.step(plant_x, controller_u, dt)
 
         controller_u_trajectory[n]  = controller_u
         plant_y_trajectory[n]       = plant_y
-
+    
     return controller_u_trajectory, plant_y_trajectory
 

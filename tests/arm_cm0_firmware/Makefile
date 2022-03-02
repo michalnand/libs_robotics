@@ -1,4 +1,7 @@
-STD_PERIPH_PATH = $(HOME)/programming/libs_robotics/LibsARM/stm32f0/
+STD_PERIPH_PATH 	= $(HOME)/programming/libs_robotics/LibsARM/stm32f0/
+MIDDLEWARE_PATH		= $(HOME)/programming/libs_robotics/LibsARM/middleware/
+LIBS_EMBEDDED_PATH	= $(HOME)/programming/libs_robotics/LibsEmbedded/
+LIBS_DEVICES_PATH	= $(HOME)/programming/libs_robotics/LibsDevices/
 
 GCCPREFIX	=arm-none-eabi-
 OUTPUT	 	=bin/build
@@ -7,15 +10,25 @@ OUTPUT	 	=bin/build
 TARGET 		= -mcpu=cortex-m0 -mthumb -DSTM32F042 -DUSE_STDPERIPH_DRIVER
 LDSCRIPT 	= ./device/ldscript.ld
 
-INC+= -I $(STD_PERIPH_PATH)/CMSIS/Include/
+INC+= -I $(STD_PERIPH_PATH)/CMSIS/Include
 INC+= -I $(STD_PERIPH_PATH)/CMSIS/Device/ST/STM32F0xx/Include
 INC+= -I $(STD_PERIPH_PATH)/STM32F0xx_StdPeriph_Driver/inc
+
+INC+= -I $(MIDDLEWARE_PATH)
+
+INC+= -I $(LIBS_EMBEDDED_PATH)
+INC+= -I $(LIBS_DEVICES_PATH)
+
 
 INC+= -I ./device
 INC+= -I .
 
 
 CXX_SRCS = $(shell find . -name '*.cpp')
+CXX_SRCS+= $(shell find $(MIDDLEWARE_PATH) -name '*.cpp')
+CXX_SRCS+= $(shell find $(LIBS_EMBEDDED_PATH) -name '*.cpp')
+CXX_SRCS+= $(shell find $(LIBS_DEVICES_PATH) -name '*.cpp')
+
 C_SRCS = $(shell find  ./device -name '*.c')
 C_SRCS+= $(shell find  $(STD_PERIPH_PATH)/STM32F0xx_StdPeriph_Driver/src -name '*.c')
 
@@ -30,9 +43,9 @@ SIZE 	= $(GCCPREFIX)size
 
 LDFLAGS = $(TARGET) -Wl,--gc-sections
 
-CCFLAGS = $(TARGET) $(INC) -c -O3 -Os -s -Wall -Wextra -pedantic -std=c99 -nostdlib   -fdata-sections -ffunction-sections   -Wl,--gc-sections
-CXXFLAGS= $(TARGET) $(INC) -c -O3 -Os -s -Wall -Wextra -pedantic -std=c++14 -fno-rtti  -fno-exceptions -fdata-sections -ffunction-sections  -Wl,--gc-sections
-LDFLAGS = -T$(LDSCRIPT) $(TARGET) -nostdlib -Wl,--gc-sections -lgcc
+CCFLAGS = $(TARGET) $(INC) -c -O2  -s -Wall -Wextra -pedantic -std=c99 -nostdlib   -fdata-sections -ffunction-sections   -Wl,--gc-sections
+CXXFLAGS= $(TARGET) $(INC) -c -O2  -s -Wall -Wextra -pedantic -std=c++14 -fno-rtti  -fno-exceptions -fdata-sections -ffunction-sections  -Wl,--gc-sections
+LDFLAGS = -T$(LDSCRIPT) $(TARGET) -nostdlib -Wl,--gc-sections -lgcc 
 
 
 C_OBJS 		= $(C_SRCS:.c=.o)

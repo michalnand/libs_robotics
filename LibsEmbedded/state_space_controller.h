@@ -1,35 +1,76 @@
+#ifndef _LinearQuadraticControllerHidden_H_
+#define _LinearQuadraticControllerHidden_H_
 
-template<unsigned int inputs_count, unsigned int outputs_count, unsigned int controller_order> 
-class StateSpaceController
+template<class DType, unsigned int required_dim, unsigned int plant_output_dim, unsigned int plant_input_dim, unsigned int hidden_dim, unsigned int scaling_nom = 1, unsigned int scaling_denom = 1> 
+class LinearQuadraticControllerHidden
 {
     public:
-        void init(float *mat_a, float *mat_b, float *smat_c)
+        void init(DType *controll_mat)
         {
-            this->mat_a = mat_a;
-            this->mat_b = mat_b;
-            this->mat_c = mat_c;
+            this->controll_mat = controll_mat;
         }
 
-
-        void step(float *output, float *required_input, float *plant_output)
+        void forward(DType *output, DType *required_state, DType *plant_state, DType *hidden_state)
         {
-            vmatmul(state_new, state, this->mat_a, 1, controller_order, controller_order, state_new);
-            vmatmul(state_new, state, this->mat_b, 1, controller_order, controller_order, state_new);
-        }
+            //concatenate vectors
+            //x = [required_state, plant_state, hidden_state]
 
-
-
-        void vmatmul(float *result, float *vect, float *mat, unsigned int rows, unsigned int cols)
-        {
-            for (unsigned int j = 0; j < cols; j++)
+            DType x[required_dim + plant_output_dim + hidden_dim];
+            unsigned int ptr = 0;
+            
+            for (unsigned int i = 0; i < required_dim; i++)
             {
-                float sum = 0.0;
-                for (unsigned int k = 0; k < rows; k++)
-                {
-                    sum+= vect[k]*mat[k*cols + j];
-                }
+                x[ptr] = required_state[i];
+                ptr++;
+            }
 
-                result[j] = sum;
+            for (unsigned int i = 0; i < plant_output_dim; i++)
+            {
+                x[ptr] = plant_state[i];
+                ptr++;
+            }
+
+            for (unsigned int i = 0; i < hidden_dim; i++)
+            {
+                x[ptr] = hidden_state[i];
+                ptr++;
+            }
+            
+
+            //hidden_new, plant_u = matmul(x, controll_mat)
+
+            //hidden state update
+            ptr = 0;
+            for (unsigned int j = 0; j < hidden_dim; j++)
+            {
+                DType sum = 0;
+
+                for (unsigned int i = 0; i < (required_dim + plant_output_dim + hidden_dim); i++)
+                {
+                    sum+= x[i]*controll_mat[ptr];
+                    ptr++;
+                } 
+                
+                hidden_state[j] = (sum*scaling_nom)/scaling_denom;
+            }
+
+            //plant controll input update
+            for (unsigned int j = 0; j < plant_input_dim; j++)
+            {
+                DType sum = 0;
+
+                for (unsigned int i = 0; i < (required_dim + plant_output_dim + hidden_dim); i++)
+                {
+                    sum+= x[i]*controll_mat[ptr];
+                    ptr++;
+                } 
+                
+                output[j] = (sum*scaling_nom)/scaling_denom;
             }
         }
-}
+
+    private:
+        DType *controll_mat;
+};
+
+#endif

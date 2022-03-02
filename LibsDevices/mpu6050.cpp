@@ -64,7 +64,7 @@ int MPU6050::init(I2C_Interface *i2c_)
     //wake up device-don't need this here if using calibration function below
     i2c->write_reg(MPU6050_ADDRESS, PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors 
 
-    delay_loops(1000000);
+    delay_loops(100000);
 
     //260Hz bandwidth
     i2c->write_reg(MPU6050_ADDRESS, CONFIG, 0x00); 
@@ -77,36 +77,39 @@ int MPU6050::init(I2C_Interface *i2c_)
 
     //set gyro scale 
     i2c->write_reg(MPU6050_ADDRESS, GYRO_CONFIG, gyro_scale << 3);
-   
-    delay_loops(1000000);
+    
+    delay_loops(100000); 
     
     if (i2c->read_reg(MPU6050_ADDRESS, WHO_AM_I_MPU6050) != 0x68)
     {
         return -1;
     } 
-
-    unsigned int count = 100;
+ 
+    uint32_t count = 100;
 
     int32_t gx_ofs_cal = 0;
     int32_t gy_ofs_cal = 0; 
     int32_t gz_ofs_cal = 0;
 
-    for (unsigned int i = 0; i < count; i++)
+    
+    for (uint32_t i = 0; i < count; i++)
     {
-        read();
+        int16_t gx = i2c->read_reg_16bit(MPU6050_ADDRESS, GYRO_XOUT_H);
+        int16_t gy = i2c->read_reg_16bit(MPU6050_ADDRESS, GYRO_YOUT_H);
+        int16_t gz = i2c->read_reg_16bit(MPU6050_ADDRESS, GYRO_ZOUT_H);
 
-        gx_ofs_cal+= gx;
-        gy_ofs_cal+= gy;
-        gz_ofs_cal+= gz;
+        gx_ofs_cal+= (int32_t)gx;
+        gy_ofs_cal+= (int32_t)gy;
+        gz_ofs_cal+= (int32_t)gz;
 
-        delay_loops(100);
-    }
+        delay_loops(1000);
+    }  
 
-    gx_offset = gx_ofs_cal/count;
-    gy_offset = gy_ofs_cal/count;
-    gz_offset = gz_ofs_cal/count;
+    gx_offset = gx_ofs_cal/((int32_t)count);
+    gy_offset = gy_ofs_cal/((int32_t)count);
+    gz_offset = gz_ofs_cal/((int32_t)count);
 
-    return 0;
+    return 0; 
 } 
 
 void MPU6050::read() 
@@ -128,6 +131,6 @@ void MPU6050::delay_loops(uint32_t loops)
 {
     while (loops--)
     {
-        __asm("nop");
+        __asm volatile ("nop");
     } 
 }

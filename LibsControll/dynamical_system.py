@@ -63,3 +63,37 @@ class DynamicalSystem(torch.nn.Module):
         return dx, y
 
 
+
+
+class LinearModel(torch.nn.Module):
+    def __init__(self, inputs_count, outputs_count, hidden_size, init_range = 0.01):
+        super().__init__()
+
+        self.mat_a         = torch.nn.parameter.Parameter(init_range*torch.randn((hidden_size, hidden_size)),  requires_grad=True)
+        self.mat_b         = torch.nn.parameter.Parameter(init_range*torch.randn((hidden_size, inputs_count)), requires_grad=True)
+        self.mat_c         = torch.nn.parameter.Parameter(init_range*torch.randn((outputs_count, hidden_size)),requires_grad=True)
+        
+        
+        self.y_noise_std    = torch.nn.parameter.Parameter(init_range*torch.randn((outputs_count)), requires_grad=True)
+        self.y_noise_mean   = torch.nn.parameter.Parameter(torch.zeros((outputs_count)), requires_grad=True)
+
+
+    def forward(self, x, u):
+       
+        x_      = x.unsqueeze(2)
+        u_      = u.unsqueeze(2)
+
+        dx = torch.bmm(self.mat_a, x_) + torch.bmm(self.mat_b, u_)
+
+        dx = dx.squeeze(2)
+
+        y  = torch.bmm(self.mat_c, x_)
+        y  = y.squeeze(2)
+
+        noise = self.y_noise_std*torch.randn_like(y) + self.y_noise_mean
+        y = y + noise
+
+        return dx, y
+
+
+

@@ -8,10 +8,10 @@ plant_output_dim    - plant outputs count (plant matrix C rows) (controller inpu
 plant_input_dim     - plant inputs count  (plant matrix B rows) (controller output)
 '''
 class LinearQuadraticController(torch.nn.Module):
-    def __init__(self, required_dim, plant_output_dim, plant_input_dim):
+    def __init__(self, required_dim, plant_output_dim, plant_input_dim, init_range = 0.001):
         super().__init__()
 
-        controll_mat        = 0.001*torch.randn((required_dim + plant_output_dim, plant_input_dim)).float()
+        controll_mat        = init_range*torch.randn((required_dim + plant_output_dim, plant_input_dim)).float()
         self.controll_mat   = torch.nn.parameter.Parameter(controll_mat, requires_grad=True)
 
       
@@ -52,14 +52,14 @@ plant_input_dim     - plant inputs count  (plant matrix B rows) (controller outp
 
 
 class LinearQuadraticControllerHidden(torch.nn.Module):
-    def __init__(self, required_dim, plant_output_dim, plant_input_dim, hidden_dim = 4):
+    def __init__(self, required_dim, plant_output_dim, plant_input_dim, hidden_dim = 4, init_range = 0.001):
         super().__init__()
 
         self.hidden_dim     = hidden_dim
 
         self.plant_input_dim = plant_input_dim
 
-        controll_mat        = 0.001*torch.randn((required_dim + plant_output_dim + hidden_dim, hidden_dim + plant_input_dim)).float()
+        controll_mat        = init_range*torch.randn((required_dim + plant_output_dim + hidden_dim, hidden_dim + plant_input_dim)).float()
         self.controll_mat   = torch.nn.parameter.Parameter(controll_mat, requires_grad=True)
 
   

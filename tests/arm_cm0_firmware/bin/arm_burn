@@ -9,5 +9,6 @@
 
 #st-link option
 #https://github.com/stlink-org/stlink/
-st-flash write build.bin 0x8000000
+st-flash --connect-under-reset write build.bin 0x8000000
 
+ 
